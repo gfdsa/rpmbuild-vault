@@ -1,7 +1,7 @@
 %define debug_package %{nil}
 
 Name:           vault
-Version:        0.9.6
+Version:        1.0.0
 Release:        1%{dist}
 Summary:        A tool for managing secrets
 Group:          Applications/Internet
@@ -17,6 +17,7 @@ Source2:        %{name}.init
 Source3:        %{name}.logrotate
 Source4:        %{name}.sysconfig
 Source5:        %{name}.tmpfiles
+Source6:        %{name}.service
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 %description
@@ -32,19 +33,21 @@ control and recording a detailed audit log.
 %{__install} -d -m 0755 %{buildroot}%{_sbindir} \
                         %{buildroot}%{_sysconfdir}/%{name} \
                         %{buildroot}%{_sysconfdir}/logrotate.d \
-                        %{buildroot}%{_sysconfdir}/rc.d/init.d \
-                        %{buildroot}%{_sysconfdir}/sysconfig \
                         %{buildroot}%{_localstatedir}/{lib,log,run}/%{name}
-         
-%{__install} -m 0755 %{name} %{buildroot}%{_sbindir}
-%{__install} -m 0600 %{SOURCE1} %{buildroot}%{_sysconfdir}/%{name}
-%{__install} -m 0755 %{SOURCE2} %{buildroot}%{_sysconfdir}/rc.d/init.d/%{name}
-%{__install} -m 0644 %{SOURCE3} %{buildroot}%{_sysconfdir}/logrotate.d/%{name}
-%{__install} -m 0644 %{SOURCE4} %{buildroot}%{_sysconfdir}/sysconfig/%{name}
 
-%if 0%{?el7}
-%{__install} -d -m 755 %{buildroot}%{_prefix}/lib/tmpfiles.d
+%{__install} -m 0600 %{SOURCE1} %{buildroot}%{_sysconfdir}/%{name}
+%{__install} -m 0644 %{SOURCE3} %{buildroot}%{_sysconfdir}/logrotate.d/%{name}
+%{__install} -m 0755 %{_builddir}/%{name}-%{version}/%{name} %{buildroot}%{_sbindir}
+
+%if ( 0%{?fedora} && 0%{?fedora} <= 15) || (0%{?rhel} && 0%{?rhel} <= 6)
+%{__install} -d -m 0755 %{buildroot}%{_sysconfdir}/rc.d/init.d \
+                        %{buildroot}%{_sysconfdir}/sysconfig
+%{__install} -m 0644 %{SOURCE4} %{buildroot}%{_sysconfdir}/sysconfig/%{name}
+%{__install} -m 0755 %{SOURCE2} %{buildroot}%{_sysconfdir}/rc.d/init.d/%{name}
+%else
+%{__install} -d -m 755 %{buildroot}%{_prefix}/lib/tmpfiles.d %{buildroot}/%{_unitdir}
 %{__install} -m 644 %{SOURCE5} %{buildroot}%{_prefix}/lib/tmpfiles.d/%{name}.conf
+%{__install} -m 644 %{SOURCE6} %{buildroot}%{_unitdir}/%{name}.service
 %endif
 
 %pre
@@ -53,12 +56,14 @@ getent passwd %{name} >/dev/null || \
   useradd -r -g %{name} -s /sbin/nologin \
     -d %{_localstatedir}/lib/%{name} -c "RPM Created Vault User" %{name}
 
+%if ( 0%{?fedora} && 0%{?fedora} <= 15) || (0%{?rhel} && 0%{?rhel} <= 6)
 %post
 /sbin/chkconfig --add %{name}
 
 %preun
 /sbin/service %{name} stop > /dev/null 2>&1
 /sbin/chkconfig --del %{name}
+%endif
 
 %clean
 rm -rf %{buildroot}
@@ -67,10 +72,12 @@ rm -rf %{buildroot}
 %defattr(-,vault,vault,-)
 %attr(-,root,root) %{_sbindir}/%{name}
 %attr(-,root,root) %{_sysconfdir}/logrotate.d/%{name}
+%if ( 0%{?fedora} && 0%{?fedora} <= 15) || (0%{?rhel} && 0%{?rhel} <= 6)
 %attr(-,root,root) %{_sysconfdir}/rc.d/init.d/%{name}
 %attr(-,root,root) %{_sysconfdir}/sysconfig/%{name}
-%if 0%{?el7}
+%else
 %attr(-,root,root) %{_prefix}/lib/tmpfiles.d/%{name}.conf
+%attr(-,root,root) %{_unitdir}/%{name}.service
 %endif
 %config(noreplace) %{_sysconfdir}/%{name}/%{name}.*
 %{_localstatedir}/lib/%{name}
@@ -78,6 +85,10 @@ rm -rf %{buildroot}
 %{_localstatedir}/run/%{name}
 
 %changelog
+* Fri Dec 14 2018 Michael Tabolsky <gfdsa@gfdsa.org> - 1.0-1
+- Bumped vault to 1.0
+- Modernized some stuff
+
 * Tue Mar 27 2018 Taylor Kimball <tkimball@linuxhq.org> - 0.9.6-1
 - Updated to 0.9.6
 - Add vault user to runas
