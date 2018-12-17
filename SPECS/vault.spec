@@ -20,6 +20,10 @@ Source5:        %{name}.tmpfiles
 Source6:        %{name}.service
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
+%if ( 0%{?fedora} && 0%{?fedora} >= 15)
+BuildRequires: systemd-units
+%endif
+
 %description
 Vault is a tool for securely accessing secrets. A secret is anything that you want
 to tightly control access to, such as API keys, passwords, certificates, and more.
