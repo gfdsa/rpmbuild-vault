@@ -2,7 +2,7 @@
 
 Name:           vault
 Version:        1.0.0
-Release:        1%{dist}
+Release:        2%{dist}
 Summary:        A tool for managing secrets
 Group:          Applications/Internet
 License:        Mozilla Public License 2.0
@@ -18,7 +18,7 @@ Source3:        %{name}.logrotate
 Source4:        %{name}.sysconfig
 Source5:        %{name}.tmpfiles
 Source6:        %{name}.service
-BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 %if ( 0%{?fedora} && 0%{?fedora} >= 15)
 BuildRequires: systemd-units
@@ -31,7 +31,7 @@ Vault provides a unified interface to any secret, while providing tight access
 control and recording a detailed audit log.
 
 %prep
-%setup -c
+%setup -c -q
 %build
 %install
 %{__install} -d -m 0755 %{buildroot}%{_sbindir} \
@@ -61,12 +61,25 @@ getent passwd %{name} >/dev/null || \
     -d %{_localstatedir}/lib/%{name} -c "RPM Created Vault User" %{name}
 
 %if ( 0%{?fedora} && 0%{?fedora} <= 15) || (0%{?rhel} && 0%{?rhel} <= 6)
+
 %post
 /sbin/chkconfig --add %{name}
 
 %preun
 /sbin/service %{name} stop > /dev/null 2>&1
 /sbin/chkconfig --del %{name}
+
+%else
+
+%post
+%systemd_post %{name}.service
+
+%preun
+%systemd_preun %{name}.service
+
+%postun
+%systemd_postun_with_restart %{name}.service
+
 %endif
 
 %clean
@@ -89,7 +102,10 @@ rm -rf %{buildroot}
 %{_localstatedir}/run/%{name}
 
 %changelog
-* Fri Dec 14 2018 Michael Tabolsky <gfdsa@gfdsa.org> - 1.0-1
+* Fri Dec 21 2018 Michael Tabolsky <gfdsa@gfdsa.org> - 1.0.0-2
+- Added systemd scriptlets
+
+* Fri Dec 14 2018 Michael Tabolsky <gfdsa@gfdsa.org> - 1.0.0-1
 - Bumped vault to 1.0
 - Modernized some stuff
 
