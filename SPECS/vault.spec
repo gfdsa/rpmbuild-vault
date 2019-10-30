@@ -102,7 +102,7 @@ rm -rf %{buildroot}
 %{_localstatedir}/run/%{name}
 
 %changelog
-* Wed Oct 30 2018 Michael Tabolsky <gfdsa@gfdsa.org> - 1.2.3-0
+* Wed Oct 30 2019 Michael Tabolsky <gfdsa@gfdsa.org> - 1.2.3-0
 - Version bump
 
 * Fri Dec 21 2018 Michael Tabolsky <gfdsa@gfdsa.org> - 1.0.0-2
