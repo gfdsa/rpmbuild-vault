@@ -1,8 +1,8 @@
 %define debug_package %{nil}
 
 Name:           vault
-Version:        1.0.0
-Release:        2%{dist}
+Version:        1.2.3
+Release:        0%{dist}
 Summary:        A tool for managing secrets
 Group:          Applications/Internet
 License:        Mozilla Public License 2.0
@@ -102,6 +102,9 @@ rm -rf %{buildroot}
 %{_localstatedir}/run/%{name}
 
 %changelog
+* Wed Oct 30 2018 Michael Tabolsky <gfdsa@gfdsa.org> - 1.2.3-0
+- Version bump
+
 * Fri Dec 21 2018 Michael Tabolsky <gfdsa@gfdsa.org> - 1.0.0-2
 - Added systemd scriptlets
 
